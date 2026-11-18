@@ -1,0 +1,11 @@
+fastapi
+uvicorn[standard]
+sqlalchemy
+httpx
+python-dotenv
+cryptography
+solders
+solana
+jinja2
+python-multipart
+pydantic

@@ -1,0 +1,282 @@
+{% extends "base.html" %}
+{% block title %}Solfow — Accept SOL at scale{% endblock %}
+{% block head_extra %}
+<style>
+  /* ---------- Nav ---------- */
+  .nav {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 20px 48px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .nav-brand { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 15px; }
+  .nav-links { display: flex; gap: 32px; font-size: 14px; color: var(--muted); }
+  .nav-links a:hover { color: var(--ink); }
+  .nav-cta {
+    padding: 8px 18px; background: transparent; color: var(--ink);
+    border: 1px solid var(--border); border-radius: var(--radius-sm);
+    font-size: 13px; font-weight: 500; transition: background 0.15s, border-color 0.15s;
+  }
+  .nav-cta:hover { background: var(--bg); border-color: var(--ink); }
+  .nav-menu-btn {
+    display: none; background: none; border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 6px 10px; font: inherit;
+    color: var(--ink); cursor: pointer;
+  }
+
+  /* ---------- Hero Layout ---------- */
+  .hero-section {
+    max-width: 1200px; margin: 0 auto;
+    padding: 100px 48px 80px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 64px;
+    align-items: center;
+  }
+  .hero-content { text-align: left; }
+  .ticker {
+    display: inline-flex; align-items: center; gap: 10px;
+    margin-bottom: 32px; font-size: 13px; color: var(--muted);
+    background: var(--surface); border: 1px solid var(--border);
+    padding: 6px 14px; border-radius: 100px;
+  }
+  .ticker-mono { font-family: var(--font-mono); color: var(--ink); letter-spacing: -0.01em; }
+  
+  .hero-content h1 {
+    font-family: var(--font-display);
+    font-size: 52px; font-weight: 700;
+    letter-spacing: -0.04em; line-height: 1.05;
+    margin: 0 0 24px; color: var(--ink);
+  }
+  .hero-content p {
+    font-size: 18px; color: var(--muted);
+    max-width: 480px; margin: 0 0 40px; line-height: 1.6;
+  }
+  
+  .hero-actions { display: flex; flex-direction: column; gap: 16px; align-items: flex-start; }
+  .hero-cta-row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .hero-cta {
+    display: inline-flex; align-items: center;
+    padding: 14px 28px;
+    background: var(--accent); color: #fff;
+    border-radius: var(--radius-sm);
+    font-size: 16px; font-weight: 500;
+    transition: background 0.15s;
+  }
+  .hero-cta:hover { background: var(--accent-hover); }
+  .hero-secondary {
+    font-size: 15px; color: var(--muted);
+    border-bottom: 1px solid var(--border); padding-bottom: 2px;
+  }
+  .hero-secondary:hover { color: var(--ink); border-color: var(--ink); }
+
+  /* ---------- Code Block ---------- */
+  .code-window {
+    background: #0d1117;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: 0 20px 40px -12px rgba(0,0,0,0.1);
+    min-width: 0; /* verhindert Grid-Overflow */
+  }
+  .code-header {
+    background: #161b22;
+    padding: 12px 16px;
+    display: flex; align-items: center; gap: 8px;
+    border-bottom: 1px solid #30363d;
+  }
+  .code-header .dot { background: #30363d; width: 10px; height: 10px; }
+  .code-header .dot:nth-child(1) { background: #ff5f56; }
+  .code-header .dot:nth-child(2) { background: #ffbd2e; }
+  .code-header .dot:nth-child(3) { background: #27c93f; }
+  .code-filename {
+    margin-left: auto;
+    font-family: var(--font-mono);
+    font-size: 12px; color: #8b949e;
+  }
+  .code-body {
+    padding: 20px;
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    line-height: 1.65;
+    color: #c9d1d9;
+    overflow-x: auto;
+    white-space: pre;
+  }
+  
+  /* Syntax Highlighting */
+  .token-keyword { color: #ff7b72; }
+  .token-string  { color: #a5d6ff; }
+  .token-comment { color: #8b949e; font-style: italic; }
+  .token-func    { color: #d2a8ff; }
+  .token-num     { color: #79c0ff; }
+
+  /* ---------- Features ---------- */
+  .features {
+    max-width: 1080px; margin: 0 auto;
+    padding: 80px 48px 120px;
+    display: grid;
+    grid-template-columns: 1.4fr 1fr 1fr;
+    gap: 48px;
+    border-top: 1px solid var(--border);
+  }
+  .feature-num {
+    display: block; font-family: var(--font-mono);
+    font-size: 12px; color: var(--faint); margin-bottom: 16px;
+  }
+  .feature h3 {
+    font-family: var(--font-display);
+    font-size: 18px; font-weight: 600;
+    letter-spacing: -0.01em; margin: 0 0 10px;
+  }
+  .feature:first-child h3 { font-size: 22px; letter-spacing: -0.02em; }
+  .feature p { font-size: 15px; color: var(--muted); line-height: 1.6; margin: 0; }
+  .feature:first-child p { font-size: 16px; }
+
+  /* ---------- Footer ---------- */
+  .footer {
+    border-top: 1px solid var(--border); padding: 32px 48px;
+    display: flex; justify-content: space-between; align-items: center;
+    gap: 16px; font-size: 14px; color: var(--muted);
+  }
+  .footer-status { display: inline-flex; align-items: center; gap: 8px; }
+  .footer-links { display: flex; gap: 24px; }
+  .footer-links a:hover { color: var(--ink); }
+
+  /* ---------- Mobile ---------- */
+  @media (max-width: 900px) {
+    .hero-section {
+      grid-template-columns: 1fr;
+      padding: 64px 24px 48px;
+      gap: 40px;
+    }
+    .hero-content h1 { font-size: 40px; }
+    .hero-content p { font-size: 16px; }
+    .hero-actions { align-items: stretch; }
+    .hero-cta-row { flex-direction: column; align-items: flex-start; gap: 12px; }
+    .code-body { font-size: 11.5px; }
+  }
+  @media (max-width: 768px) {
+    .nav { padding: 16px 24px; flex-wrap: wrap; gap: 12px; }
+    .nav-menu-btn { display: inline-block; order: 3; }
+    .nav-links {
+      display: none; order: 4; width: 100%;
+      flex-direction: column; gap: 16px;
+      padding: 16px 0 4px; border-top: 1px solid var(--border);
+    }
+    .nav-links[data-open="true"] { display: flex; }
+    .nav-cta { order: 2; }
+    .features { grid-template-columns: 1fr; padding: 48px 24px 72px; gap: 40px; }
+    .feature:first-child h3 { font-size: 20px; }
+    .footer { flex-direction: column; text-align: center; gap: 16px; }
+  }
+</style>
+{% endblock %}
+
+{% block body %}
+<nav class="nav">
+  <div class="nav-brand">
+    <span class="dot" aria-hidden="true"></span>Solfow
+  </div>
+  <button class="nav-menu-btn" type="button"
+          aria-expanded="false" aria-controls="nav-links"
+          onclick="const l=document.getElementById('nav-links');const open=l.dataset.open==='true';l.dataset.open=String(!open);this.setAttribute('aria-expanded',String(!open));">
+    Menu
+  </button>
+  <div class="nav-links" id="nav-links" data-open="false">
+    <a href="#features">Features</a>
+    <a href="docs">Docs</a>
+    <a href="docs#status">Status</a>
+  </div>
+  <a class="nav-cta" href="/login">Sign in</a>
+</nav>
+
+<section class="hero-section">
+  <div class="hero-content">
+
+    <h1>Accept SOL payments<br>at enterprise scale.</h1>
+    <p>One integration. Automatic fee collection. Instant settlement. Built for teams that move real volume.</p>
+
+    <div class="hero-actions">
+      <div class="hero-cta-row">
+        <a class="hero-cta" href="/login">Create an API key</a>
+        <a class="hero-secondary" href="docs">or read the docs</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Code-Block mit dem echten, bewiesenen API-Flow -->
+  <div class="code-window">
+    <div class="code-header">
+      <span class="dot"></span>
+      <span class="dot"></span>
+      <span class="dot"></span>
+      <span class="code-filename">checkout.py</span>
+    </div>
+    <pre class="code-body"><code><span class="token-keyword">import</span> requests, time
+
+API = <span class="token-string">"https://api.solfow.com"</span>
+KEY = <span class="token-string">"sk_live_..."</span>
+
+<span class="token-comment"># 1. Create payment</span>
+order = requests.post(
+    <span class="token-string">f"{API}/payment"</span>,
+    headers={<span class="token-string">"x-api-key"</span>: KEY},
+    json={
+        <span class="token-string">"address"</span>: <span class="token-string">"YourWalletAddress..."</span>,
+        <span class="token-string">"amount"</span>: <span class="token-num">0.42</span>,
+        <span class="token-string">"redirect_url"</span>: <span class="token-string">"https://yourshop.com/success"</span>,
+    },
+    timeout=<span class="token-num">10</span>,
+).json()
+
+pid = order[<span class="token-string">"url"</span>].split(<span class="token-string">"/"</span>)[-<span class="token-num">1</span>]
+
+<span class="token-comment"># 2. Wait until paid</span>
+<span class="token-keyword">while</span> <span class="token-keyword">True</span>:
+    status = requests.get(
+        <span class="token-string">f"{API}/payment/{pid}/status"</span>,
+        timeout=<span class="token-num">10</span>,
+    ).json()
+
+    <span class="token-keyword">if</span> status[<span class="token-string">"paid"</span>]:
+        <span class="token-keyword">break</span>
+
+    time.sleep(<span class="token-num">2</span>)
+
+<span class="token-keyword">print</span>(<span class="token-string">f"Paid: {pid}"</span>)
+</code></pre>
+  </div>
+</section>
+
+<section class="features" id="features">
+  <div class="feature">
+    <span class="feature-num">01</span>
+    <h3>Instant settlement</h3>
+    <p>Payments are detected and forwarded within seconds. No manual intervention, no delays.</p>
+  </div>
+  <div class="feature">
+    <span class="feature-num">02</span>
+    <h3>Automatic fee collection</h3>
+    <p>Fees are calculated and collected on every transaction. Funds land in your wallet automatically.</p>
+  </div>
+  <div class="feature">
+    <span class="feature-num">03</span>
+    <h3>Built for scale</h3>
+    <p>Handles thousands of concurrent payments without state leaks or missing transactions.</p>
+  </div>
+</section>
+
+<footer class="footer" id="status">
+  <span>© 2026 Solfow</span>
+  <span class="footer-status">
+    <span class="dot" aria-hidden="true"></span>
+    <a href="docs#status">All systems operational</a>
+  </span>
+  <nav class="footer-links">
+    <a href="docs">Docs</a>
+    <a href="docs#status">Status</a>
+  </nav>
+</footer>
+{% endblock %}

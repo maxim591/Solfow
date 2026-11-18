@@ -1,0 +1,430 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — Solfow{% endblock %}
+{% block head_extra %}
+<style>
+  .app-nav { display: flex; justify-content: space-between; align-items: center;
+             padding: 16px 40px; border-bottom: 1px solid var(--border);
+             background: var(--surface); position: sticky; top: 0; z-index: 20; }
+  .app-brand { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 15px; }
+  .app-brand .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); }
+  .app-user { display: flex; align-items: center; gap: 16px; }
+  .app-user .email { font-size: 13px; color: var(--text-secondary); }
+  .btn-ghost { padding: 7px 14px; border: 1px solid var(--border); border-radius: var(--radius-sm);
+               font-size: 13px; font-weight: 500; background: var(--surface); color: var(--text);
+               transition: background 0.15s; }
+  .btn-ghost:hover { background: var(--bg); }
+
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); border-bottom: 1px solid var(--border);
+           background: var(--surface); }
+  .stat { padding: 24px 40px; border-right: 1px solid var(--border); }
+  .stat:last-child { border-right: none; }
+  .stat-label { font-size: 11px; font-weight: 500; color: var(--text-tertiary);
+                text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
+  .stat-value { font-size: 24px; font-weight: 600; letter-spacing: -0.02em;
+                font-variant-numeric: tabular-nums; }
+
+  .layout { display: grid; grid-template-columns: 400px 1fr; min-height: calc(100vh - 180px); }
+  .col-left { padding: 32px 40px; border-right: 1px solid var(--border); background: var(--surface); }
+  .col-right { padding: 32px 40px; background: var(--surface); }
+
+  .panel { margin-bottom: 36px; }
+  .panel:last-child { margin-bottom: 0; }
+  .panel h2 { font-size: 11px; font-weight: 600; color: var(--text-tertiary);
+              text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 12px; }
+
+  .keyfield { display: flex; align-items: center; background: var(--bg);
+              border: 1px solid var(--border); border-radius: var(--radius-sm);
+              padding: 0 6px 0 12px; gap: 4px; }
+  .keyinput { flex: 1; border: none; background: transparent; padding: 10px 0;
+              font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 12px;
+              color: var(--text); min-width: 0; overflow-x: auto; white-space: nowrap; }
+  .keyinput:focus { outline: none; }
+  .icon-btn { width: 28px; height: 28px; flex-shrink: 0; border-radius: 5px;
+              display: flex; align-items: center; justify-content: center;
+              color: var(--text-tertiary); transition: background 0.15s, color 0.15s; }
+  .icon-btn:hover { background: var(--border); color: var(--text); }
+  .hint { font-size: 12px; color: var(--text-tertiary); margin-top: 8px; line-height: 1.5; }
+  .hint code { font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 11px;
+               background: var(--bg); padding: 1px 5px; border-radius: 3px; color: var(--text-secondary); }
+
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-size: 12px; font-weight: 500; color: var(--text-secondary);
+                 margin-bottom: 6px; }
+  .field .opt { color: var(--text-tertiary); font-weight: 400; }
+  .field input { width: 100%; padding: 9px 12px; border: 1px solid var(--border);
+                 border-radius: var(--radius-sm); font-size: 13px; background: var(--surface);
+                 color: var(--text); transition: border-color 0.15s; }
+  .field input:focus { outline: none; border-color: var(--text); }
+  .btn-primary { width: 100%; padding: 10px; margin-top: 6px; background: var(--accent);
+                 color: #fff; border-radius: var(--radius-sm); font-size: 13px;
+                 font-weight: 500; transition: background 0.15s; }
+  .btn-primary:hover { background: var(--accent-hover); }
+
+  .panel-head { display: flex; justify-content: space-between; align-items: center;
+                padding-bottom: 24px; border-bottom: 1px solid var(--border); margin-bottom: 24px;
+                gap: 16px; flex-wrap: wrap; }
+  .panel-head h2 { margin: 0; }
+  .search { width: 280px; max-width: 100%; padding: 9px 12px; border: 1px solid var(--border);
+            border-radius: var(--radius-sm); font-size: 13px; background: var(--surface); }
+  .search:focus { outline: none; border-color: var(--text); }
+
+  .table-block { margin-bottom: 36px; }
+  .table-block:last-child { margin-bottom: 0; }
+  .table-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 12px;
+                 display: flex; align-items: center; gap: 8px; }
+  .count { font-size: 11px; font-weight: 500; color: var(--text-secondary);
+           background: var(--bg); border: 1px solid var(--border);
+           padding: 1px 8px; border-radius: 100px; }
+
+  .pay-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .pay-table th { text-align: left; font-size: 11px; font-weight: 500; color: var(--text-tertiary);
+                  text-transform: uppercase; letter-spacing: 0.05em; padding: 0 0 10px; }
+  .pay-table td { padding: 13px 0; border-top: 1px solid var(--border); }
+  .pay-table tr:hover td { background: var(--bg); }
+  .pay-table .mono { font-size: 12px; color: var(--text-secondary); }
+  .amount { font-variant-numeric: tabular-nums; font-weight: 500; }
+  .empty { color: var(--text-tertiary); padding: 20px 0; }
+
+  .actions { display: flex; gap: 6px; justify-content: flex-end; }
+  .actions a { font-size: 12px; font-weight: 500; color: var(--blue);
+               padding: 4px 10px; border-radius: 5px; transition: background 0.15s; }
+  .actions a:hover { background: #eff6ff; }
+  .copy-small, .delete-btn { padding: 4px 10px; border-radius: 5px; font-size: 12px;
+                             font-weight: 500; border: 1px solid var(--border);
+                             background: var(--surface); color: var(--text); transition: background 0.15s; }
+  .copy-small:hover { background: var(--bg); }
+  .delete-btn { color: var(--red); border-color: #fecaca; }
+  .delete-btn:hover { background: #fef2f2; }
+
+  .status { font-size: 12px; font-weight: 500; }
+  .status.pending { color: var(--amber); }
+  .status.fee_sent { color: var(--blue); }
+  .status.forwarded { color: var(--green); }
+  .status.expired, .status.failed { color: var(--red); }
+
+  .modal-backdrop { position: fixed; inset: 0; background: rgba(10, 11, 13, 0.5);
+                    display: flex; align-items: center; justify-content: center; z-index: 50;
+                    padding: 24px; backdrop-filter: blur(2px); }
+  .modal-backdrop.hidden { display: none; }
+  .modal { background: var(--surface); border-radius: var(--radius); padding: 32px;
+           width: 100%; max-width: 480px; box-shadow: 0 24px 64px rgba(0,0,0,0.2); }
+  .modal h2 { font-size: 15px; font-weight: 600; margin-bottom: 18px; }
+  .modal-link { font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 12px;
+                background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm);
+                padding: 12px 14px; word-break: break-all; margin-bottom: 20px; }
+  .modal-actions { display: flex; gap: 10px; }
+  .btn-white { flex: 1; text-align: center; padding: 10px; border: 1px solid var(--border);
+               border-radius: var(--radius-sm); font-size: 13px; font-weight: 500;
+               background: var(--surface); color: var(--text); transition: background 0.15s; }
+  .btn-white:hover { background: var(--bg); }
+  .btn-blue { flex: 1; padding: 10px; background: var(--accent); color: #fff; border: none;
+              border-radius: var(--radius-sm); font-size: 13px; font-weight: 500;
+              transition: background 0.15s; }
+  .btn-blue:hover { background: var(--accent-hover); }
+
+  @media (max-width: 1000px) {
+    .layout { grid-template-columns: 1fr; }
+    .col-left { border-right: none; border-bottom: 1px solid var(--border); }
+  }
+  @media (max-width: 640px) {
+    .app-nav { padding: 14px 20px; }
+    .stats { grid-template-columns: 1fr; }
+    .stat { border-right: none; border-bottom: 1px solid var(--border); padding: 18px 20px; }
+    .col-left, .col-right { padding: 24px 20px; }
+  }
+</style>
+{% endblock %}
+{% block body %}
+<nav class="app-nav">
+  <div class="app-brand"><span class="dot"></span>Solfow</div>
+  <div class="app-user">
+    <span class="email">{{ user.username or user.id }}</span>
+    <form method="post" action="/logout" style="margin:0">
+      <button class="btn-ghost">Sign out</button>
+    </form>
+  </div>
+</nav>
+
+<div class="stats">
+  <div class="stat">
+    <div class="stat-label">Open volume</div>
+    <div class="stat-value">{{ "%.4f"|format(open_total) }} <span style="font-size:13px;font-weight:500;color:var(--text-tertiary)">SOL</span></div>
+  </div>
+  <div class="stat">
+    <div class="stat-label">Settled volume</div>
+    <div class="stat-value">{{ "%.4f"|format(paid_total) }} <span style="font-size:13px;font-weight:500;color:var(--text-tertiary)">SOL</span></div>
+  </div>
+  <div class="stat">
+    <div class="stat-label">Active payments</div>
+    <div class="stat-value">{{ open_count }}</div>
+  </div>
+</div>
+
+<div class="layout">
+  <aside class="col-left">
+    <div class="panel">
+      <h2>API Key</h2>
+      <div class="keyfield">
+        <input type="text" id="api-key" class="keyinput" readonly
+               value="{{ user.api_key }}" data-real="{{ user.api_key }}">
+        <button type="button" class="icon-btn" id="toggle-key" title="Show / hide">
+          <svg id="eye-on" width="15" height="15" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+            <circle cx="12" cy="12" r="3"/>
+          </svg>
+          <svg id="eye-off" width="15" height="15" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"
+               style="display:none">
+            <path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a20.3 20.3 0 0 1 5.06-6.06"/>
+            <path d="M9.9 4.24A10.94 10.94 0 0 1 12 4c7 0 11 8 11 8a20.3 20.3 0 0 1-3.17 3.94"/>
+            <path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"/>
+            <line x1="1" y1="1" x2="23" y2="23"/>
+          </svg>
+        </button>
+        <button type="button" class="icon-btn" id="copy-key" title="Copy">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="9" y="9" width="13" height="13" rx="2"/>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+          </svg>
+        </button>
+      </div>
+      <p class="hint">Use as <code>x-api-key</code> header on <code>POST /payment</code>.</p>
+    </div>
+
+    <div class="panel">
+      <h2>Create payment</h2>
+      <form id="create-form" method="post" action="/ui/payment">
+        <div class="field">
+          <label for="address">Recipient address</label>
+          <input type="text" id="address" name="address" placeholder="Solana address" required>
+        </div>
+        <div class="field">
+          <label for="amount">Amount (SOL)</label>
+          <input type="number" id="amount" name="amount" step="0.000000001" min="0.000001" placeholder="0.1" required>
+        </div>
+        <div class="field">
+          <label for="redirect_url">Redirect URL <span class="opt">optional</span></label>
+          <input type="url" id="redirect_url" name="redirect_url" placeholder="https://...">
+        </div>
+        <button type="submit" class="btn-primary">Create payment</button>
+      </form>
+    </div>
+  </aside>
+
+  <main class="col-right">
+    <div class="panel-head">
+      <h2 style="font-size:11px;font-weight:600;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:0.06em;">Payments</h2>
+      <input type="text" id="search-input" class="search" placeholder="Search by ID, amount or status">
+    </div>
+
+    <div class="table-block" data-section="open">
+      <div class="table-title">Open <span class="count">{{ open_count }}</span></div>
+      <table class="pay-table">
+        <thead>
+          <tr><th>ID</th><th>Amount</th><th>Status</th><th></th></tr>
+        </thead>
+        <tbody>
+          {% for p in open_payments %}
+          <tr data-search="{{ p.id }} {{ p.amount }} {{ p.status }}">
+            <td class="mono">{{ p.id[:12] }}</td>
+            <td class="amount">{{ "%.4f"|format(p.amount) }} SOL</td>
+            <td><span class="status {{ p.status }}">{{ p.status }}</span></td>
+            <td class="actions">
+              <a href="/payment/{{ p.id }}" target="_blank">Open</a>
+              <button class="copy-small" data-link="{{ request.base_url }}payment/{{ p.id }}">Copy</button>
+              <button class="delete-btn" data-id="{{ p.id }}">Delete</button>
+            </td>
+          </tr>
+          {% else %}
+          <tr class="empty-row"><td colspan="4" class="empty">No open payments.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="table-block" data-section="paid">
+      <div class="table-title">Settled</div>
+      <table class="pay-table">
+        <thead>
+          <tr><th>ID</th><th>Amount</th><th>Status</th><th></th></tr>
+        </thead>
+        <tbody>
+          {% for p in paid_payments %}
+          <tr data-search="{{ p.id }} {{ p.amount }} {{ p.status }}">
+            <td class="mono">{{ p.id[:12] }}</td>
+            <td class="amount">{{ "%.4f"|format(p.amount) }} SOL</td>
+            <td><span class="status {{ p.status }}">{{ p.status }}</span></td>
+            <td class="actions">
+              <a href="/payment/{{ p.id }}" target="_blank">Open</a>
+              <button class="copy-small" data-link="{{ request.base_url }}payment/{{ p.id }}">Copy</button>
+              <button class="delete-btn" data-id="{{ p.id }}">Delete</button>
+            </td>
+          </tr>
+          {% else %}
+          <tr class="empty-row"><td colspan="4" class="empty">No settled payments yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </main>
+</div>
+
+<div id="modal-backdrop" class="modal-backdrop hidden">
+  <div class="modal">
+    <h2>Payment link</h2>
+    <div class="modal-link" id="modal-link"></div>
+    <div class="modal-actions">
+      <a id="modal-open" class="btn-white" href="#" target="_blank">Open</a>
+      <button id="modal-copy" class="btn-blue">Copy link</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const form = document.getElementById("create-form");
+  const backdrop = document.getElementById("modal-backdrop");
+  const modalLink = document.getElementById("modal-link");
+  const modalOpen = document.getElementById("modal-open");
+  const modalCopy = document.getElementById("modal-copy");
+
+  const keyInput = document.getElementById("api-key");
+  const realKey = keyInput.dataset.real;
+  const eyeOn = document.getElementById("eye-on");
+  const eyeOff = document.getElementById("eye-off");
+  const toggleBtn = document.getElementById("toggle-key");
+  const copyKeyBtn = document.getElementById("copy-key");
+
+  function maskKey(key) { return "•".repeat(key.length); }
+
+  let keyVisible = false;
+  keyInput.value = maskKey(realKey);
+
+  toggleBtn.addEventListener("click", () => {
+    keyVisible = !keyVisible;
+    keyInput.value = keyVisible ? realKey : maskKey(realKey);
+    eyeOn.style.display = keyVisible ? "none" : "";
+    eyeOff.style.display = keyVisible ? "" : "none";
+  });
+
+  keyInput.addEventListener("copy", (e) => {
+    e.preventDefault();
+    e.clipboardData.setData("text/plain", realKey);
+  });
+
+  copyKeyBtn.addEventListener("click", () => {
+    navigator.clipboard.writeText(realKey);
+    copyKeyBtn.style.color = "#059669";
+    setTimeout(() => { copyKeyBtn.style.color = ""; }, 1200);
+  });
+
+  function bindCopy(btn) {
+    btn.addEventListener("click", () => {
+      navigator.clipboard.writeText(btn.dataset.link);
+      const old = btn.textContent;
+      btn.textContent = "Copied";
+      setTimeout(() => { btn.textContent = old; }, 1500);
+    });
+  }
+
+  function bindDelete(btn) {
+    btn.addEventListener("click", async () => {
+      const id = btn.dataset.id;
+      if (!confirm("Delete this payment?")) return;
+      const res = await fetch(`/ui/payment/${id}/delete`, { method: "POST" });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        alert(data.error || "Delete failed");
+        return;
+      }
+      btn.closest("tr").remove();
+    });
+  }
+
+  document.querySelectorAll(".copy-small").forEach(bindCopy);
+  document.querySelectorAll(".delete-btn").forEach(bindDelete);
+
+  function addOpenRow(id, amount, url) {
+    const tbody = document.querySelector("[data-section='open'] tbody");
+    if (!tbody) return;
+    const tr = document.createElement("tr");
+    tr.dataset.search = `${id} ${amount.toFixed(4)} pending`;
+    tr.innerHTML = `
+      <td class="mono">${id.slice(0, 12)}</td>
+      <td class="amount">${amount.toFixed(4)} SOL</td>
+      <td><span class="status pending">pending</span></td>
+      <td class="actions">
+        <a href="/payment/${id}" target="_blank">Open</a>
+        <button class="copy-small" data-link="${url}">Copy</button>
+        <button class="delete-btn" data-id="${id}">Delete</button>
+      </td>
+    `;
+    tbody.prepend(tr);
+    bindCopy(tr.querySelector(".copy-small"));
+    bindDelete(tr.querySelector(".delete-btn"));
+  }
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const fd = new FormData(form);
+    const amount = parseFloat(fd.get("amount"));
+    const res = await fetch("/ui/payment", {
+      method: "POST",
+      body: fd,
+      redirect: "manual"
+    });
+    if (res.type === "opaqueredirect" || res.status === 0) {
+      window.location.href = "/dashboard";
+      return;
+    }
+    const data = await res.json();
+    if (!data.url) {
+      alert(data.error || data.detail || "Failed to create payment");
+      return;
+    }
+
+    modalLink.textContent = data.url;
+    modalOpen.href = data.url;
+    backdrop.classList.remove("hidden");
+    form.reset();
+
+    addOpenRow(data.id, amount, data.url);
+
+    const stats = document.querySelectorAll(".stat-value");
+    const openCount = document.querySelector("[data-section='open'] .count");
+    if (openCount) openCount.textContent = parseInt(openCount.textContent || "0") + 1;
+    if (stats[0]) stats[0].innerHTML = (parseFloat(stats[0].textContent) + amount).toFixed(4) + ' <span style="font-size:13px;font-weight:500;color:var(--text-tertiary)">SOL</span>';
+    if (stats[2]) stats[2].textContent = parseInt(stats[2].textContent || "0") + 1;
+
+    const emptyRow = document.querySelector("[data-section='open'] .empty-row");
+    if (emptyRow) emptyRow.remove();
+  });
+
+  modalCopy.addEventListener("click", () => {
+    navigator.clipboard.writeText(modalLink.textContent);
+    modalCopy.textContent = "Copied";
+    setTimeout(() => { modalCopy.textContent = "Copy link"; }, 1500);
+  });
+
+  backdrop.addEventListener("click", (e) => {
+    if (e.target === backdrop) backdrop.classList.add("hidden");
+  });
+
+  const searchInput = document.getElementById("search-input");
+  searchInput.addEventListener("input", () => {
+    const q = searchInput.value.toLowerCase().trim();
+    document.querySelectorAll(".table-block").forEach((block) => {
+      let visible = 0;
+      block.querySelectorAll("tbody tr").forEach((tr) => {
+        if (tr.classList.contains("empty-row")) return;
+        const match = !q || (tr.dataset.search || "").toLowerCase().includes(q);
+        tr.style.display = match ? "" : "none";
+        if (match) visible++;
+      });
+      const emptyRow = block.querySelector(".empty-row");
+      if (emptyRow) emptyRow.style.display = visible === 0 ? "" : "none";
+    });
+  });
+</script>
+{% endblock %}
